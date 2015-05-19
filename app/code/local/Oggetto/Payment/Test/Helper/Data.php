@@ -1,0 +1,253 @@
+<?php
+/**
+ * Oggetto Payment extension for Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade
+ * the Oggetto Payment module to newer versions in the future.
+ * If you wish to customize the Oggetto Payment module for your needs
+ * please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   Oggetto
+ * @package    Oggetto_Payment
+ * @copyright  Copyright (C) 2015 Oggetto Web (http://oggettoweb.com)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+
+/**
+ * Helper data test class
+ *
+ * @category   Oggetto
+ * @package    Oggetto_Payment
+ * @subpackage Helper
+ * @author     Vladislav Slesarenko <vslesarenko@oggettoweb.com>
+ */
+class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
+{
+    /**
+     * Helper Data
+     *
+     * @var Oggetto_Payment_Helper_Data
+     */
+    protected $_helper;
+
+    /**
+     * Set Up initial variables
+     *
+     * @return void
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->_helper = Mage::helper('oggetto_payment');
+    }
+
+    /**
+     * Return generated signature from input data
+     *
+     * @return void
+     */
+    public function testReturnsGeneratedSignatureFromInputData()
+    {
+        $data = [
+            'z' => 'qwe',
+            'q' => 'asd',
+            'a' => 'zxc'
+        ];
+
+        $signature = 'a:zxc|q:asd|z:qwe';
+
+        $this->assertEquals($signature, $this->_helper->generateSignature($data));
+    }
+
+    /**
+     * Return Oggetto Payment API secret key from store config
+     *
+     * @return void
+     *
+     * @loadFixture
+     */
+    public function testReturnsOggettoPaymentApiSecretKeyFromStoreConfig()
+    {
+        $secretKey = 'testKey';
+
+        $this->assertEquals($secretKey, $this->_helper->getApiSecretKey());
+    }
+
+    /**
+     * Return Oggetto Payment API submit URL from store config
+     *
+     * @return void
+     *
+     * @loadFixture
+     */
+    public function testReturnsOggettoPaymentApiSubmitUrlFromStoreConfig()
+    {
+        $url = 'testUrl';
+
+        $this->assertEquals($url, $this->_helper->getSubmitUrl());
+    }
+
+    /**
+     * Return Oggetto Payment API success URL from store config
+     *
+     * @return void
+     */
+    public function testReturnsOggettoPaymentApiSuccessUrl()
+    {
+        $url = 'testUrl';
+
+        $this->replaceCoreUrlModelMockForGettingUrl('checkout/onepage/success', $url);
+
+        $this->assertEquals($url, $this->_helper->getSuccessUrl());
+    }
+
+    /**
+     * Return Oggetto Payment API error URL from store config
+     *
+     * @return void
+     */
+    public function testReturnsOggettoPaymentApiErrorUrl()
+    {
+        $url = 'testUrl';
+
+        $this->replaceCoreUrlModelMockForGettingUrl('oggetto_payment/payment/cancel', $url);
+
+        $this->assertEquals($url, $this->_helper->getErrorUrl());
+    }
+
+    /**
+     * Return Oggetto Payment
+     *
+     * @return void
+     */
+    public function testReturnsOggettoPaymentApiTotal()
+    {
+        $testTotal = 123.45;
+        $testStr = '123.45';
+
+        $modelSalesOrderMock = $this->getModelMock('sales/order', ['getGrandTotal']);
+
+        $modelSalesOrderMock->expects($this->once())
+            ->method('getGrandTotal')
+            ->willReturn($testTotal);
+
+        $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
+
+
+        $helperDataMock = $this->getHelperMock('oggetto_payment', [
+            'getOrder', 'convertPriceFromFloatToCommaFormat'
+        ]);
+
+        $helperDataMock->expects($this->once())
+            ->method('getOrder')
+            ->willReturn($modelSalesOrderMock);
+
+        $helperDataMock->expects($this->once())
+            ->method('convertPriceFromFloatToCommaFormat')
+            ->with($testTotal)
+            ->willReturn($testStr);
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+
+        $this->assertEquals($testStr, $helperDataMock->getTotal());
+    }
+
+    /**
+     * Return MD5 hash from input string
+     *
+     * @return void
+     */
+    public function testReturnsHashFromInputString()
+    {
+        $testStr = 'qwerty';
+
+        $this->assertEquals(md5($testStr), $this->_helper->getHash($testStr));
+    }
+
+    /**
+     * Return price in format with comma from float
+     *
+     * @return void
+     */
+    public function testReturnsPriceInCommaFormatFromFloat()
+    {
+        $testPrice = 123.456;
+        $testStr = '123,46';
+
+        $this->assertEquals($testStr, $this->_helper->convertPriceFromFloatToCommaFormat($testPrice));
+    }
+
+    /**
+     * Return price in format with comma from float
+     *
+     * @return void
+     */
+    public function testReturnsPriceFromCommaFormatToFloat()
+    {
+        $testPrice = 123.46;
+        $testStr = '123,456';
+
+        $this->assertEquals($testPrice, $this->_helper->convertPriceFromCommaFormatToFloat($testStr));
+    }
+
+    /**
+     * Return order from sales/order model with established order id
+     *
+     * @return void
+     */
+    public function testReturnsOrderWithEstablishedOrderId()
+    {
+        $testOrderId = '777';
+
+        $helperDataMock = $this->getHelperMock('oggetto_payment', ['getOrderId']);
+
+        $helperDataMock->expects($this->once())
+            ->method('getOrderId')
+            ->willReturn($testOrderId);
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+
+        $modelSalesOrderMock = $this->getModelMock('sales/order', ['loadByIncrementId']);
+
+        $modelSalesOrderMock->expects($this->once())
+            ->method('loadByIncrementId')
+            ->with($testOrderId)
+            ->willReturnSelf();
+
+        $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
+
+        $this->assertEquals($modelSalesOrderMock, $helperDataMock->getOrder());
+    }
+
+
+    /**
+     * Mock and replace core/url model for getting url
+     *
+     * @param string $route     route
+     * @param string $testValue test url value
+     *
+     * @return void
+     */
+    protected function replaceCoreUrlModelMockForGettingUrl($route, $testValue)
+    {
+        $coreUrl = $this->getModelMock('core/url', ['getUrl']);
+
+        $coreUrl->expects($this->once())
+            ->method('getUrl')
+            ->with($route)
+            ->willReturn($testValue);
+
+        $this->replaceByMock('model', 'core/url', $coreUrl);
+    }
+}

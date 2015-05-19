@@ -1,0 +1,2 @@
+config:
+  default/payment/oggetto_payment/submit_url: testUrl
