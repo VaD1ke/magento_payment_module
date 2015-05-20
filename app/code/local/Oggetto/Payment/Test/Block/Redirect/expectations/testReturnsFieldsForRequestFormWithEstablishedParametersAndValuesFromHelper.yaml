@@ -1,7 +1,0 @@
-order_id: OrderId
-total: Total
-order_items_string: OrderItemsString
-success_url: SuccessUrl
-error_url: ErrorUrl
-payment_report_url : ReportUrl
-hash: hashSignature
