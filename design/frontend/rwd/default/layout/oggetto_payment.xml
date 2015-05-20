@@ -24,7 +24,7 @@ please refer to http://www.magentocommerce.com for more information.
 <layout>
     <oggetto_payment_payment_redirect>
         <reference name="content">
-            <block type="oggetto_payment/payment" name="payment.content" template="oggetto_payment/redirect.phtml"/>
+            <block type="oggetto_payment/redirect" name="redirect.content" template="oggetto_payment/redirect.phtml"/>
         </reference>
     </oggetto_payment_payment_redirect>
 </layout>
