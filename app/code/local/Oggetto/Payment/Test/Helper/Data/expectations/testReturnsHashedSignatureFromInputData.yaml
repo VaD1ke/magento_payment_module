@@ -1,0 +1,7 @@
+fields:
+  - q: asd
+    a: zxc
+    z: qwe
+signature: a:zxc|q:asd|z:qwe
+secret_key: qwerty
+signature_with_secret_key: a:zxc|q:asd|z:qwe|qwerty

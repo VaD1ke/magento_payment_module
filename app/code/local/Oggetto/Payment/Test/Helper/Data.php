@@ -51,6 +51,42 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
+     * Return hashed signature from input data
+     *
+     * @return void
+     */
+    public function testReturnsHashedSignatureFromInputData()
+    {
+        $fields            = $this->expected()->getFields();
+        $signature         = $this->expected()->getSignature();
+        $signWithSecretKey = $this->expected()->getSignatureWithSecretKey();
+        $hashedSignature   = md5($signature);
+
+
+        $helperDataMock = $this->getHelperMock('oggetto_payment', [
+            'generateSignature', 'getApiSecretKey', 'getHash'
+        ]);
+
+        $helperDataMock->expects($this->once())
+            ->method('generateSignature')
+            ->with($fields)
+            ->willReturn($signature);
+
+        $helperDataMock->expects($this->once())
+            ->method('getApiSecretKey')
+            ->willReturn($this->expected()->getSecretKey());
+
+         $helperDataMock->expects($this->once())
+             ->method('getHash')
+             ->with($signWithSecretKey)
+             ->willReturn($hashedSignature);
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+        $this->assertEquals($hashedSignature, $helperDataMock->getHashedSignature($fields));
+    }
+
+    /**
      * Return generated signature from input data
      *
      * @return void
@@ -228,6 +264,43 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
 
         $this->assertEquals($modelSalesOrderMock, $helperDataMock->getOrder());
+    }
+
+    /**
+     * Return order items string with comma separation
+     *
+     * @return void
+     */
+    public function testReturnsOrderItemsStringWithCommaSeparation()
+    {
+        $items   = [
+            new Varien_Object(['name' => 'test1']),
+            new Varien_Object(['name' => 'test2']),
+            new Varien_Object(['name' => 'test3'])
+        ];
+
+        $itemStr = 'test1,test2,test3';
+
+
+        $modelSalesOrderMock = $this->getModelMock('sales/order', ['getAllVisibleItems']);
+
+        $modelSalesOrderMock->expects($this->once())
+            ->method('getAllVisibleItems')
+            ->willReturn($items);
+
+        $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
+
+
+        $helperDataMock = $this->getHelperMock('oggetto_payment', ['getOrder']);
+
+        $helperDataMock->expects($this->once())
+            ->method('getOrder')
+            ->willReturn($modelSalesOrderMock);
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+
+        $this->assertEquals($itemStr, $helperDataMock->getOrderItemsString());
     }
 
 

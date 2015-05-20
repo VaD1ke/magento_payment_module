@@ -33,6 +33,22 @@
 class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
+     * Get hashed signature
+     *
+     * @param array $fields form fields
+     * @return string
+     */
+    public function getHashedSignature($fields)
+    {
+        $signature = $this->generateSignature($fields);
+        $signature .= '|' . $this->getApiSecretKey();
+
+        $hashedSignature = $this->getHash($signature);
+
+        return $hashedSignature;
+    }
+    
+    /**
      * Generate not hashed signature from data
      *
      * @param array $data data
@@ -48,7 +64,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
             $signature .= $key . ':' . $value . '|';
         }
 
-         $signature = substr($signature, 0, strlen($signature) - 1);
+        $signature = substr($signature, 0, strlen($signature) - 1);
 
         return $signature;
     }
@@ -87,6 +103,25 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         $salesOrder = Mage::getModel('sales/order');
         $order = $salesOrder->loadByIncrementId($this->getOrderId());
         return $order;
+    }
+
+    /**
+     * Get order items in string with comma separation
+     *
+     * @return string
+     */
+    public function getOrderItemsString()
+    {
+        /** @var Mage_Sales_Model_Order $items */
+        $items    = $this->getOrder()->getAllVisibleItems();
+        $itemsStr = '';
+
+        foreach ($items as $item) {
+            $itemsStr .= $item->getName() . ',';
+        }
+        $itemsStr = substr($itemsStr, 0, strlen($itemsStr) - 1);
+
+        return $itemsStr;
     }
 
     /**
