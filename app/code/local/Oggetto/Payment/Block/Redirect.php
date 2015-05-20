@@ -42,14 +42,7 @@ class Oggetto_Payment_Block_Redirect extends Mage_Core_Block_Template
         /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
 
-        $fields = [
-            'order_id'           => $helper->getOrderId(),
-            'total'              => $helper->getTotal(),
-            'items'              => $helper->getOrderItemsString(),
-            'success_url'        => $helper->getSuccessUrl(),
-            'error_url'          => $helper->getErrorUrl(),
-            'payment_report_url' => $helper->getPaymentReportUrl()
-        ];
+        $fields = $helper->getFormFields();
 
         $fields['hash'] = $helper->getHashedSignature($fields);
 

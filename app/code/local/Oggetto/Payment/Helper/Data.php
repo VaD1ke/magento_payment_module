@@ -32,6 +32,27 @@
  */
 class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
 {
+    protected $_order;
+
+    /**
+     * Get form fields without signature
+     * 
+     * @return array
+     */
+    public function getFormFields()
+    {
+        $fields = [
+            'order_id'           => $this->getOrderId(),
+            'total'              => $this->getTotal(),
+            'items'              => $this->getOrderItemsString(),
+            'success_url'        => $this->getSuccessUrl(),
+            'error_url'          => $this->getErrorUrl(),
+            'payment_report_url' => $this->getPaymentReportUrl()
+        ];
+
+        return $fields;
+    }
+    
     /**
      * Get hashed signature
      *
@@ -99,10 +120,13 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getOrder()
     {
-        /** @var Mage_Sales_Model_Order $salesOrder */
-        $salesOrder = Mage::getModel('sales/order');
-        $order = $salesOrder->loadByIncrementId($this->getOrderId());
-        return $order;
+        if (is_null($this->_order)) {
+            /** @var Mage_Sales_Model_Order $salesOrder */
+            $salesOrder = Mage::getModel('sales/order');
+            $order = $salesOrder->loadByIncrementId($this->getOrderId());
+            return $order;
+        }
+        return $this->_order;
     }
 
     /**
@@ -198,5 +222,15 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getErrorUrl()
     {
         return $this->_getUrl('oggetto_payment/payment/cancel');
+    }
+
+    /**
+     * Get payment report URL for request
+     *
+     * @return string
+     */
+    public function getPaymentReportUrl()
+    {
+        return $this->_getUrl('oggetto_payment/payment/response');
     }
 }

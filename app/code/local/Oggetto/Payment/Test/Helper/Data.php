@@ -27,7 +27,7 @@
  *
  * @category   Oggetto
  * @package    Oggetto_Payment
- * @subpackage Helper
+ * @subpackage Test
  * @author     Vladislav Slesarenko <vslesarenko@oggettoweb.com>
  */
 class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
@@ -48,6 +48,32 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
     {
         parent::setUp();
         $this->_helper = Mage::helper('oggetto_payment');
+    }
+
+    /**
+     * Returns fields for request form with established parameters and values
+     *
+     * @param array $fields  form fields
+     * @param array $methods helper data methods
+     *
+     * @return void
+     *
+     * @dataProvider dataProvider
+     */
+    public function testReturnsFieldsForRequestFormWithEstablishedParametersAndValues($fields, $methods)
+    {
+        $helperDataMock = $this->getHelperMock('oggetto_payment', $methods);
+
+        foreach ($methods as $i => $method) {
+            $helperDataMock->expects($this->at($i))
+                ->method($method)
+                ->willReturn($this->expected()->$method());
+        }
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+
+        $this->assertEquals($fields, $helperDataMock->getFormFields());
     }
 
     /**
@@ -147,7 +173,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
-     * Return Oggetto Payment API error URL from store config
+     * Return Oggetto Payment API error URL
      *
      * @return void
      */
@@ -158,6 +184,20 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceCoreUrlModelMockForGettingUrl('oggetto_payment/payment/cancel', $url);
 
         $this->assertEquals($url, $this->_helper->getErrorUrl());
+    }
+
+    /**
+     * Return Oggetto Payment API report URL
+     *
+     * @return void
+     */
+    public function testReturnsOggettoPaymentApiReportUrl()
+    {
+        $url = 'testUrl';
+
+        $this->replaceCoreUrlModelMockForGettingUrl('oggetto_payment/payment/response', $url);
+
+        $this->assertEquals($url, $this->_helper->getPaymentReportUrl());
     }
 
     /**
