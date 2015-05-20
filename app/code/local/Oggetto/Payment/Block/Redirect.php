@@ -23,40 +23,50 @@
  */
 
 /**
- * Block for displaying questions
+ * Block for displaying request form
  *
  * @category   Oggetto
  * @package    Oggetto_Payment
  * @subpackage Block
  * @author     Vladislav Slesarenko <vslesarenko@oggettoweb.com>
  */
-class Oggetto_Payment_Block_Payment extends Mage_Core_Block_Template
+class Oggetto_Payment_Block_Redirect extends Mage_Core_Block_Template
 {
-    protected $_fields;
     /**
-     * Init object
+     * Get form fields
      *
-     * @return Oggetto_Payment_Block_Payment
+     * @return array
      */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->_fields = [
-            'order_id' , 'total',
-            'items'    , 'success_url',
-            'error_url', 'payment_report_url',
-            'hash'
-        ];
-    }
-
     public function getFields()
     {
-        return $this->_fields;
+        /** @var Oggetto_Payment_Helper_Data $helper */
+        $helper = Mage::helper('oggetto_payment');
+
+        $fields = [
+            'order_id'           => $helper->getOrderId(),
+            'total'              => $helper->getTotal(),
+            'items'              => $helper->getOrderItemsString(),
+            'success_url'        => $helper->getSuccessUrl(),
+            'error_url'          => $helper->getErrorUrl(),
+            'payment_report_url' => $helper->getPaymentReportUrl()
+        ];
+
+        $fields['hash'] = $helper->getHashedSignature($fields);
+
+        return $fields;
     }
 
-    public function getHashedSignature()
+
+    /**
+     * Get URL for submitting form from helper
+     *
+     * @return string
+     */
+    public function getSubmitUrl()
     {
+        /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
+
+        return $helper->getSubmitUrl();
     }
 }
