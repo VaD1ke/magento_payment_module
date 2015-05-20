@@ -39,14 +39,6 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      */
     public function redirectAction() {
         $this->loadLayout();
-        $block = $this->getLayout()->createBlock(
-            'Mage_Core_Block_Template',
-            'oggetto_payment',
-            [
-                'template' => 'oggetto_payment/redirect.phtml'
-            ]
-        );
-        $this->getLayout()->getBlock('content')->append($block);
         $this->renderLayout();
     }
 
@@ -56,7 +48,23 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      * @return void
      */
     public function responseAction() {
+        if ($this->getRequest()->isPost()) {
+            $data = $this->getRequest()->getPost();
 
+            if ($data['status'] == 1 || $data['status'] == 2) {
+                /** @var Oggetto_Payment_Model_Order $orderModel */
+                $orderModel = Mage::getModel('oggetto_payment/order');
+
+                if ($orderModel->validate($data)) {
+                    $orderModel->handle($data['status']);
+                    $this->getResponse()->setHttpResponseCode(200);
+                } else {
+                    $this->getResponse()->setHttpResponseCode(400);
+                }
+            } else {
+                $this->getResponse()->setHttpResponseCode(400);
+            }
+        }
     }
 
     /**
@@ -65,12 +73,19 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      * @return void
      */
     public function cancelAction() {
-        if (Mage::getSingleton('checkout/session')->getLastRealOrderId()) {
-            $order = Mage::getModel('sales/order')->loadByIncrementId(Mage::getSingleton('checkout/session')->getLastRealOrderId());
+        $errorMessage = $this->getRequest()->getParam('message');
+        Mage::getSingleton('core/session')->addError($errorMessage);
+
+        /** @var Oggetto_Payment_Helper_Data $helper */
+        $helper = Mage::helper('oggetto_payment');
+
+        if ($helper->getOrderId()) {
+            $order = $helper->getOrder();
             if($order->getId()) {
                 // Flag the order as 'cancelled' and save it
-                $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.')->save();
+
             }
         }
+        $this->_redirect('checkout/onepage/failure');
     }
 }
