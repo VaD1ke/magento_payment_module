@@ -41,6 +41,7 @@ class Oggetto_Payment_Test_Block_Redirect extends EcomDev_PHPUnit_Test_Case
 
     /**
      * Set up initial variables
+     *
      * @return void
      */
     protected function setUp()

@@ -60,13 +60,12 @@ class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
     protected $_canCapture             = true;
 
     /**
-     * Return Order place redirect url
+     * Return Order place redirect url when customer clicks on place order
      *
      * @return string
      */
     public function getOrderPlaceRedirectUrl()
     {
-        //when you click on place order you will be redirected on this url, if you don't want this action remove this method
         /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
 
@@ -136,6 +135,8 @@ class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
      * @param Mage_Sales_Model_Order_Invoice $invoice Invoice
      * @throws Exception
      * @throws bool
+     *
+     * @return void
      */
     protected function _saveTransactionWithAddedInvoice($invoice)
     {

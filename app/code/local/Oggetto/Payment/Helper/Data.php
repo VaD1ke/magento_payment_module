@@ -122,6 +122,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      * Set order
      *
      * @param Mage_Sales_Model_Order $order order
+     * @return void
      */
     public function setOrder(Mage_Sales_Model_Order $order)
     {
@@ -209,6 +210,11 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfig('payment/oggetto_payment/api_secret');
     }
 
+    /**
+     * Get redirect URL in Payment controller with secure option
+     *
+     * @return string
+     */
     public function getRedirectSecureUrl()
     {
         return Mage::getUrl('oggetto_payment/payment/redirect', ['_secure' => true]);

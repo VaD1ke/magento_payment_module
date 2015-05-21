@@ -37,7 +37,8 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      *
      * @return void
      */
-    public function redirectAction() {
+    public function redirectAction()
+    {
         $this->loadLayout();
         $this->renderLayout();
     }
@@ -47,7 +48,8 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      *
      * @return void
      */
-    public function responseAction() {
+    public function responseAction()
+    {
         if ($this->getRequest()->isPost()) {
             $data = $this->getRequest()->getPost();
 
@@ -78,7 +80,8 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
      *
      * @return void
      */
-    public function cancelAction() {
+    public function cancelAction()
+    {
         $errorMessage = $this->getRequest()->getParam('message');
         Mage::getSingleton('core/session')->addError($errorMessage);
 
@@ -87,7 +90,7 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
 
         $order = $helper->getOrder();
 
-        if($order->getId()) {
+        if ($order->getId()) {
             $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true)->save();
         }
 
