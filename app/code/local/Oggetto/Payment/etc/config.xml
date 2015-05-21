@@ -48,14 +48,17 @@ please refer to http://www.magentocommerce.com for more information.
             </oggetto_payment>
         </blocks>
 
-        <resources>
-            <oggetto_payment_setup>
-                <setup>
-                    <module>Oggetto_Payment</module>
-                    <connection>core_setup</connection>
-                </setup>
-            </oggetto_payment_setup>
-        </resources>
+        <events>
+            <sales_order_save_after>
+                <observers>
+                    <unique_sales_order_save_after>
+                        <type>singleton</type>
+                        <class>oggetto_payment/observer</class>
+                        <method>export</method>
+                    </unique_sales_order_save_after>
+                </observers>
+            </sales_order_save_after>
+        </events>
     </global>
 
     <default>
@@ -63,7 +66,7 @@ please refer to http://www.magentocommerce.com for more information.
             <oggetto_payment>
                 <model>oggetto_payment/standard</model>
                 <active>1</active>
-                <api_secret>ZnVkjayB0aGUgZHVjaw==</api_secret>
+                <api_secret>ZnVjayB0aGUgZHVjaw==</api_secret>
                 <order_status>pending</order_status>
                 <title>Oggetto Payment</title>
                 <payment_action>sale</payment_action>
@@ -80,10 +83,18 @@ please refer to http://www.magentocommerce.com for more information.
                 <use>standard</use>
                 <args>
                     <module>Oggetto_Payment</module>
-                    <frontName>payment</frontName>
+                    <frontName>oggetto_payment</frontName>
                 </args>
             </oggetto_payment>
         </routers>
+
+        <layout>
+            <updates>
+                <oggetto_payment>
+                    <file>oggetto_payment.xml</file>
+                </oggetto_payment>
+            </updates>
+        </layout>
     </frontend>
 
     <phpunit>
