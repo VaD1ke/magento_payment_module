@@ -76,7 +76,7 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
 
         $modelOrderMock->expects($this->once())
             ->method('handle')
-            ->with($post['status']);
+            ->with($post['status'], $post['order_id']);
 
         $this->replaceByMock('model', 'oggetto_payment/order', $modelOrderMock);
 

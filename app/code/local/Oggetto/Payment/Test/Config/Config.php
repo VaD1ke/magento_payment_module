@@ -33,16 +33,6 @@
 class Oggetto_Payment_Test_Config_Config extends EcomDev_PHPUnit_Test_Case_Config
 {
     /**
-     * Test setup resources on definition
-     *
-     * @return void
-     */
-    public function testChecksSetupResourcesDefined()
-    {
-        $this->assertSetupResourceDefined();
-    }
-
-    /**
      * Test codePool and version of module
      *
      * @return void
