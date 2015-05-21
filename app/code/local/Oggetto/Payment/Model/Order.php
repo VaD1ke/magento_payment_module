@@ -33,12 +33,6 @@
 class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
 {
     /**
-     * Order
-     * @var Mage_Sales_Model_Order
-     */
-    protected $_order;
-
-    /**
      * Validate order
      *
      * @param array $data data for validating order
@@ -61,7 +55,6 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
                 $signature = $helper->getHashedSignature($helper->getFormFields());
 
                 if ($signature == $data['hash']) {
-                    $this->_order = $order;
                     return true;
                 }
             }
@@ -73,34 +66,43 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
     /**
      * Handle order
      *
-     * @param string $status payment status
+     * @param string $status  payment status
+     * @param string $orderId order ID
+     *
      * @return void
      */
-    public function handle($status)
+    public function handle($status, $orderId)
     {
+        /** @var Mage_Sales_Model_Order $order */
+        $order = Mage::getModel('sales/order');
+        $order->loadByIncrementId($orderId);
+        
+
+        /** @var Mage_Sales_Model_Resource_Order_Invoice_Collection $invoiceCollection */
+        $invoiceCollection = $order->getInvoiceCollection();
         /** @var Mage_Sales_Model_Order_Invoice $invoice */
-        $invoice = $this->_order->getInvoiceCollection()->getLastItem();
+        $invoice = $invoiceCollection->getLastItem();
 
         if ($status == 1) {
             if ($invoice->canCapture()) {
                 $invoice->capture()->save();
             }
 
-            $this->_order->setState(
+            $order->setState(
                     Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
                 )
                 ->setStatus('processing')
                 ->sendNewOrderEmail()
                 ->setEmailSent(true);
 
-            $this->_order->save();
+            $order->save();
         } else {
             if ($invoice->canCancel()) {
                 $invoice->cancel()->save();
             }
 
-            if ($this->_order->canCancel()) {
-                $this->_order->cancel()->setState(
+            if ($order->canCancel()) {
+                $order->cancel()->setState(
                     Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.'
                 )->save();
             }

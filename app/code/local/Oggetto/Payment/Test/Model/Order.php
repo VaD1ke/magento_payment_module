@@ -240,4 +240,362 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
         $this->assertEquals(false, $this->_modelOrder->validate($data));
     }
+
+    /**
+     * Set order state and set email with can capture invoice and status equals one
+     *
+     * @return void
+     */
+    public function testSetsOrderStateAndSetEmailWithCanCaptureInvoiceAndStatusEqualsOne()
+    {
+        $status = '1';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
+            'canCapture', 'capture', 'save'
+        ]);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('canCapture')
+            ->willReturn(true);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('capture')
+            ->willReturnSelf();
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('save');
+
+        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
+
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+
+        $this->_mockOrderModelWithSettingParamsAndSaving($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Set order state and set email without can capture invoice and status equals one
+     *
+     * @return void
+     */
+    public function testSetsOrderStateAndSetEmailWithoutCanCaptureInvoiceAndStatusEqualsOne()
+    {
+        $status = '1';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
+            'canCapture', 'capture', 'save'
+        ]);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('canCapture')
+            ->willReturn(false);
+
+        $modelInvoiceMock->expects($this->never())
+            ->method('capture');
+
+        $modelInvoiceMock->expects($this->never())
+            ->method('save');
+
+        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
+
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+
+        $this->_mockOrderModelWithSettingParamsAndSaving($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Set order state and cancel it and its invoice with can capture invoice and status equals two
+     *
+     * @return void
+     */
+    public function testSetsOrderStateAndCancelItAndItsInvoiceWithCanCaptureInvoiceAndStatusEqualsTwo()
+    {
+        $status = '2';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations();
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+        $this->_mockOrderModelWithSettingStateAndCancelIt($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Set order state and cancel it and its invoice without can capture invoice and status equals two
+     *
+     * @return void
+     */
+    public function testSetsOrderStateAndCancelItWithoutCanCancelInvoiceAndStatusEqualsTwo()
+    {
+        $status = '2';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations();
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+        $this->_mockOrderModelWithSettingStateAndCancelIt($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Set order state and cancel it and its invoice with can capture invoice and status equals two
+     *
+     * @return void
+     */
+    public function testChecksNotCancelItWithoutCanCancelStatusAndWithCanCaptureInvoiceAndStatusEqualsTwo()
+    {
+        $status = '2';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations();
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+        $this->_mockOrderModelWithoutCanCancelStatusAndNotSavingIt($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Set order state and cancel it and its invoice with can capture invoice and status equals two
+     *
+     * @return void
+     */
+    public function testChecksNotCancelItWithoutCanCancelStatusAndWithoutCanCaptureInvoiceAndStatusEqualsTwo()
+    {
+        $status = '2';
+        $orderId = '777';
+
+        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations();
+
+        $resModelInvoiceCollectionMock = $this->_getOrderInvoiceCollectionMockWithGetLastItemMethod($modelInvoiceMock);
+
+        $this->_mockOrderModelWithoutCanCancelStatusAndNotSavingIt($orderId, $resModelInvoiceCollectionMock);
+
+
+        $this->_modelOrder->handle($status, $orderId);
+    }
+
+    /**
+     * Get order invoice collection mock with getLastItem method mocked
+     *
+     * @param EcomDev_PHPUnit_Mock_Proxy $invoiceMock Order invoice model mock
+     * @return EcomDev_PHPUnit_Mock_Proxy
+     */
+    protected function _getOrderInvoiceCollectionMockWithGetLastItemMethod($invoiceMock)
+    {
+        $resModelInvoiceCollectionMock = $this->getResourceModelMock(
+            'sales/order_invoice_collection', ['getLastItem']);
+
+        $resModelInvoiceCollectionMock->expects($this->once())
+            ->method('getLastItem')
+            ->willReturn($invoiceMock);
+
+        $this->replaceByMock('resource_model', 'sales/order_invoice_collection', $resModelInvoiceCollectionMock);
+
+        return $resModelInvoiceCollectionMock;
+    }
+
+    /**
+     * Get sales/order_invoice Model Mock with not canCancel and never cancel and save methods expectations
+     *
+     * @return EcomDev_PHPUnit_Mock_Proxy
+     */
+    protected function _getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations()
+    {
+        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
+            'canCancel', 'cancel', 'save'
+        ]);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(false);
+
+        $modelInvoiceMock->expects($this->never())
+            ->method('cancel');
+
+        $modelInvoiceMock->expects($this->never())
+            ->method('save');
+
+        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
+
+        return $modelInvoiceMock;
+    }
+
+    /**
+     * Get sales/order_invoice Model Mock with canCancel and cancel and save methods expectations
+     *
+     * @return EcomDev_PHPUnit_Mock_Proxy
+     */
+    protected function _getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations()
+    {
+        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
+            'canCancel', 'cancel', 'save'
+        ]);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(true);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('cancel')
+            ->willReturnSelf();
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('save');
+
+        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
+
+        return $modelInvoiceMock;
+    }
+
+    /**
+     * Mock and replace sales/order model with setting parameters and saving itself
+     *
+     * @param string                     $orderId               Order ID
+     * @param EcomDev_PHPUnit_Mock_Proxy $invoiceCollectionMock Order invoice collection mock
+     *
+     * @return void
+     */
+    protected function _mockOrderModelWithSettingParamsAndSaving($orderId, $invoiceCollectionMock)
+    {
+        $modelOrderMock = $this->getModelMock('sales/order', [
+            'loadByIncrementId', 'getInvoiceCollection',
+            'setState', 'setStatus', 'sendNewOrderEmail',
+            'setEmailSent', 'save'
+        ]);
+
+        $modelOrderMock->expects($this->once())
+            ->method('loadByIncrementId')
+            ->with($orderId)
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('getInvoiceCollection')
+            ->willReturn($invoiceCollectionMock);
+
+        $modelOrderMock->expects($this->once())
+            ->method('setState')
+            ->with(Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('setStatus')
+            ->with('processing')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('sendNewOrderEmail')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('setEmailSent')
+            ->with(true);
+
+        $modelOrderMock->expects($this->once())
+            ->method('save');
+
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+    }
+
+    /**
+     * Mock and replace sales/order model with setting parameters and cancel it
+     *
+     * @param string                     $orderId               Order ID
+     * @param EcomDev_PHPUnit_Mock_Proxy $invoiceCollectionMock Order invoice collection mock
+     *
+     * @return void
+     */
+    protected function _mockOrderModelWithSettingStateAndCancelIt($orderId, $invoiceCollectionMock)
+    {
+        $modelOrderMock = $this->getModelMock('sales/order', [
+            'loadByIncrementId', 'canCancel', 'cancel',
+            'setState', 'save', 'getInvoiceCollection'
+        ]);
+
+        $modelOrderMock->expects($this->once())
+            ->method('loadByIncrementId')
+            ->with($orderId)
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(true);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getInvoiceCollection')
+            ->willReturn($invoiceCollectionMock);
+
+        $modelOrderMock->expects($this->once())
+            ->method('setState')
+            ->with(Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('cancel')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('save');
+
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+    }
+
+    /**
+     * Mock and replace sales/order model with setting parameters and cancel it
+     *
+     * @param string                     $orderId               Order ID
+     * @param EcomDev_PHPUnit_Mock_Proxy $invoiceCollectionMock Order invoice collection mock
+     *
+     * @return void
+     */
+    protected function _mockOrderModelWithoutCanCancelStatusAndNotSavingIt($orderId, $invoiceCollectionMock)
+    {
+        $modelOrderMock = $this->getModelMock('sales/order', [
+            'loadByIncrementId', 'canCancel', 'cancel',
+            'setState', 'save', 'getInvoiceCollection'
+        ]);
+
+        $modelOrderMock->expects($this->once())
+            ->method('loadByIncrementId')
+            ->with($orderId)
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('canCancel')
+            ->willReturn(false);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getInvoiceCollection')
+            ->willReturn($invoiceCollectionMock);
+
+        $modelOrderMock->expects($this->never())
+            ->method('cancel');
+
+        $modelOrderMock->expects($this->never())
+            ->method('save');
+
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+    }
 }
