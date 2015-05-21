@@ -43,14 +43,14 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
 
         $this->_assertRequestsDispatchForwardRouteAndController('redirect');
 
-        //$this->assertLayoutBlockCreated('redirect.content');
+
         $this->assertLayoutHandleLoaded('oggetto_payment_payment_redirect');
         $this->assertLayoutRendered();
 
-
-        //$this->assertLayoutBlockInstanceOf('redirect.content', 'Oggetto_Payment_Block_Redirect');
-        //$this->assertLayoutBlockParentEquals('redirect.content', 'content');
-        //$this->assertLayoutBlockRendered('redirect.content');
+        $this->assertLayoutBlockCreated('redirect.content');
+        $this->assertLayoutBlockInstanceOf('redirect.content', 'Oggetto_Payment_Block_Redirect');
+        $this->assertLayoutBlockParentEquals('redirect.content', 'content');
+        $this->assertLayoutBlockRendered('redirect.content');
     }
 
     /**
@@ -146,13 +146,88 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
     }
 
     /**
+     * Test Response Action sets Internal Server Error(500) HTTP Response Status if
+     *
+     * @return void
+     */
+    public function testResponseActionSetsInternalServerErrorStatusIfWasException()
+    {
+        $post = ['status' => 2];
+
+        $this->getRequest()->setMethod('POST');
+        $this->getRequest()->setPost($post);
+
+
+        $modelOrderMock = $this->getModelMock('oggetto_payment/order', ['validate']);
+
+        $modelOrderMock->expects($this->once())
+            ->method('validate')
+            ->willThrowException(new Exception);
+
+        $this->replaceByMock('model', 'oggetto_payment/order', $modelOrderMock);
+
+
+        $this->dispatch('oggetto_payment/payment/response');
+
+        $this->_assertRequestsDispatchForwardRouteAndController('response');
+
+        $this->assertResponseHttpCode(500);
+    }
+
+    /**
      * Test Cancel Action redirects with error message
      *
      * @return void
      */
     public function testCancelActionRedirectsWithErrorMessage()
     {
+        $errorMessage = 'test';
+        $this->getRequest()->setParam('message', $errorMessage);
 
+        $coreSessionMock = $this->getModelMock('core/session', ['addError']);
+
+        $coreSessionMock->expects($this->once())
+            ->method('addError')
+            ->with($errorMessage);
+
+        $this->replaceByMock('singleton', 'core/session', $coreSessionMock);
+
+
+        $modelOrderMock = $this->getModelMock('sales/order', [
+            'getId', 'cancel', 'setState', 'save'
+        ]);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getId')
+            ->willReturn(777);
+
+        $modelOrderMock->expects($this->once())
+            ->method('cancel')
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('setState')
+            ->with(Mage_Sales_Model_Order::STATE_CANCELED, true)
+            ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('save');
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+
+        $helperDataMock = $this->getHelperMock('oggetto_payment', ['getOrder']);
+
+        $helperDataMock->expects($this->once())
+            ->method('getOrder')
+            ->willReturn($modelOrderMock);
+
+        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+
+        $this->dispatch('oggetto_payment/payment/cancel');
+
+        $this->_assertRequestsDispatchForwardRouteAndController('cancel');
+
+        $this->assertRedirectTo('checkout/onepage/failure');
     }
 
 

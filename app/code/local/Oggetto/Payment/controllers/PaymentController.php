@@ -51,19 +51,25 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
         if ($this->getRequest()->isPost()) {
             $data = $this->getRequest()->getPost();
 
-            if ($data['status'] == 1 || $data['status'] == 2) {
-                /** @var Oggetto_Payment_Model_Order $orderModel */
-                $orderModel = Mage::getModel('oggetto_payment/order');
+            try {
+                if ($data['status'] == 1 || $data['status'] == 2) {
+                    /** @var Oggetto_Payment_Model_Order $orderModel */
+                    $orderModel = Mage::getModel('oggetto_payment/order');
 
-                if ($orderModel->validate($data)) {
-                    $orderModel->handle($data['status']);
-                    $this->getResponse()->setHttpResponseCode(200);
+                    if ($orderModel->validate($data)) {
+                        $orderModel->handle($data['status']);
+                        $this->getResponse()->setHttpResponseCode(200);
+                    } else {
+                        $this->getResponse()->setHttpResponseCode(400);
+                    }
                 } else {
                     $this->getResponse()->setHttpResponseCode(400);
                 }
-            } else {
-                $this->getResponse()->setHttpResponseCode(400);
+            } catch (Exception $e) {
+                Mage::logException($e);
+                $this->getResponse()->setHttpResponseCode(500);
             }
+
         }
     }
 
@@ -79,13 +85,12 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
         /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
 
-        if ($helper->getOrderId()) {
-            $order = $helper->getOrder();
-            if($order->getId()) {
-                // Flag the order as 'cancelled' and save it
+        $order = $helper->getOrder();
 
-            }
+        if($order->getId()) {
+            $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true)->save();
         }
+
         $this->_redirect('checkout/onepage/failure');
     }
 }
