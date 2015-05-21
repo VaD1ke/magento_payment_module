@@ -1,6 +1,6 @@
-<form name="oggettoPaymentForm" method="post" action="<?php $this->getSubmitUrl() ?>">
+<form name="oggettoPaymentForm" method="post" action="<?php echo $this->getSubmitUrl() ?>">
     <?php foreach ($this->getFields() as $field => $value): ?>
-        <input type="hidden" name="<?php echo $field; ?>" value="<?php echo $value; ?>"
+        <input type="hidden" name="<?php echo $field; ?>" value="<?php echo $value; ?>">
     <?php endforeach; ?>
 </form>
 <script type="text/javascript">
