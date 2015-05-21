@@ -145,6 +145,27 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
+     * Return Oggetto Payment Redirect URL with secure option
+     *
+     * @return void
+     */
+    public function testReturnsOggettoPaymentRedirectUrlWithSecureOption()
+    {
+        $url = 'testUrl';
+
+        $coreUrl = $this->getModelMock('core/url', ['getUrl']);
+
+        $coreUrl->expects($this->once())
+            ->method('getUrl')
+            ->with('oggetto_payment/payment/redirect', ['_secure' => true])
+            ->willReturn($url);
+
+        $this->replaceByMock('model', 'core/url', $coreUrl);
+
+        $this->assertEquals($url, $this->_helper->getRedirectSecureUrl());
+    }
+
+    /**
      * Return Oggetto Payment API submit URL from store config
      *
      * @return void

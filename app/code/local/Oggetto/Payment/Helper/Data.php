@@ -32,6 +32,11 @@
  */
 class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
 {
+    /**
+     * Order
+     *
+     * @var Mage_Sales_Model_Order
+     */
     protected $_order;
 
     /**
@@ -114,6 +119,16 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * Set order
+     *
+     * @param Mage_Sales_Model_Order $order order
+     */
+    public function setOrder(Mage_Sales_Model_Order $order)
+    {
+        $this->_order = $order;
+    }
+
+    /**
      * Get order
      *
      * @return Mage_Sales_Model_Order
@@ -192,6 +207,11 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getApiSecretKey()
     {
         return Mage::getStoreConfig('payment/oggetto_payment/api_secret');
+    }
+
+    public function getRedirectSecureUrl()
+    {
+        return Mage::getUrl('oggetto_payment/payment/redirect', ['_secure' => true]);
     }
 
     /**
