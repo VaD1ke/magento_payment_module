@@ -78,16 +78,33 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
      */
     public function handle($status)
     {
-
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
         $invoice = $this->_order->getInvoiceCollection()->getLastItem();
 
         if ($status == 1) {
+            if ($invoice->canCapture()) {
+                $invoice->capture()->save();
+            }
 
+            $this->_order->setState(
+                    Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
+                )
+                ->setStatus('processing')
+                ->sendNewOrderEmail()
+                ->setEmailSent(true);
+
+            $this->_order->save();
         } else {
+            if ($invoice->canCancel()) {
+                $invoice->cancel()->save();
+            }
 
-            $this->_order->cancel()->setState(
-                Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.'
-            )->save();
+            if ($this->_order->canCancel()) {
+                $this->_order->cancel()->setState(
+                    Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.'
+                )->save();
+            }
+
         }
     }
 }

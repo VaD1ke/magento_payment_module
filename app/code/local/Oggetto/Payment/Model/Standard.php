@@ -32,11 +32,32 @@
  */
 class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
 {
+    /**
+     * Unique internal payment method identifier
+     * @var string
+     */
     protected $_code = 'oggetto_payment';
 
-    protected $_isInitializeNeeded      = true;
-    protected $_canUseInternal          = false;
-    protected $_canUseForMultishipping  = false;
+    /**
+     * Is initialize needed
+     * @var bool
+     */
+    protected $_isInitializeNeeded     = true;
+    /**
+     * Can use this payment method in administration panel?
+     * @var bool
+     */
+    protected $_canUseInternal         = false;
+    /**
+     * Is this payment method suitable for multi-shipping checkout?
+     * @var bool
+     */
+    protected $_canUseForMultishipping = false;
+    /**
+     * Can capture funds online?
+     * @var bool
+     */
+    protected $_canCapture             = true;
 
     /**
      * Return Order place redirect url
@@ -45,7 +66,7 @@ class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
      */
     public function getOrderPlaceRedirectUrl()
     {
-//when you click on place order you will be redirected on this url, if you don't want this action remove this method
-        return Mage::getUrl('payment/payment/redirect', ['_secure' => true]);
+        //when you click on place order you will be redirected on this url, if you don't want this action remove this method
+        return Mage::getUrl('oggetto_payment/payment/redirect', ['_secure' => true]);
     }
 }
