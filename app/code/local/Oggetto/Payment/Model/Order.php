@@ -52,7 +52,12 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
             $grandTotal = $helper->convertPriceFromFloatToCommaFormat($order->getGrandTotal());
 
             if ($data['total'] == $grandTotal) {
-                $signature = $helper->getHashedSignature($helper->getFormFields());
+                $hashData = [
+                    'order_id' => $data['order_id'],
+                    'total'    => $data['total'],
+                    'status'   => $data['status']
+                ];
+                $signature = $helper->getHashedSignature($hashData);
 
                 if ($signature == $data['hash']) {
                     return true;
@@ -76,12 +81,8 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         /** @var Mage_Sales_Model_Order $order */
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($orderId);
-        
 
-        /** @var Mage_Sales_Model_Resource_Order_Invoice_Collection $invoiceCollection */
-        $invoiceCollection = $order->getInvoiceCollection();
-        /** @var Mage_Sales_Model_Order_Invoice $invoice */
-        $invoice = $invoiceCollection->getLastItem();
+        $invoice = $this->getInvoiceFromOrder($order);
 
         if ($status == 1) {
             if ($invoice->canCapture()) {
@@ -108,5 +109,21 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
             }
 
         }
+    }
+
+    /**
+     * Get invoice from order
+     *
+     * @param Mage_Sales_Model_Order $order Order
+     * @return Mage_Sales_Model_Order_Invoice
+     */
+    public function getInvoiceFromOrder(Mage_Sales_Model_Order $order)
+    {
+        /** @var Mage_Sales_Model_Resource_Order_Invoice_Collection $invoiceCollection */
+        $invoiceCollection = $order->getInvoiceCollection();
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
+        $invoice = $invoiceCollection->getLastItem();
+
+       return $invoice;
     }
 }

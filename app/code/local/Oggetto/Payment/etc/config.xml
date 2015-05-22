@@ -54,7 +54,7 @@ please refer to http://www.magentocommerce.com for more information.
                     <unique_sales_order_save_after>
                         <type>singleton</type>
                         <class>oggetto_payment/observer</class>
-                        <method>export</method>
+                        <method>saveOrderAfterPlace</method>
                     </unique_sales_order_save_after>
                 </observers>
             </sales_order_save_after>

@@ -60,8 +60,10 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
         $data = [
             'order_id' => 777,
             'total'    => '123.45',
-            'hash'     => 'qwert'
+            'status'   => 1
         ];
+
+        $hash = 'qwert';
 
         $grandTotal = 123.45;
 
@@ -87,8 +89,7 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
 
         $helperDataMock = $this->getHelperMock('oggetto_payment', [
-            'convertPriceFromFloatToCommaFormat',
-            'getFormFields', 'getHashedSignature'
+            'convertPriceFromFloatToCommaFormat','getHashedSignature'
         ]);
 
         $helperDataMock->expects($this->once())
@@ -97,11 +98,11 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
             ->willReturn($data['total']);
 
         $helperDataMock->expects($this->once())
-            ->method('getFormFields');
-
-        $helperDataMock->expects($this->once())
             ->method('getHashedSignature')
-            ->willReturn($data['hash']);
+            ->with($data)
+            ->willReturn($hash);
+
+        $data['hash'] = $hash;
 
         $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
 
@@ -115,7 +116,10 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
      */
     public function testReturnsFalseFromOrderValidationWhenOrderWithIdNotExist()
     {
-        $data = ['order_id' => 777];
+        $data = [
+            'order_id' => 777,
+            'total'    => '123.45'
+        ];
 
         $modelOrderMock = $this->getModelMock('sales/order', ['loadByIncrementId', 'getId']);
 
@@ -191,6 +195,7 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
         $data = [
             'order_id' => 777,
             'total'    => '123.45',
+            'status'   => 1,
             'hash'     => 'signature1'
         ];
 
@@ -219,18 +224,13 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
 
         $helperDataMock = $this->getHelperMock('oggetto_payment', [
-            'convertPriceFromFloatToCommaFormat',
-            'getFormFields', 'getHashedSignature'
+            'convertPriceFromFloatToCommaFormat', 'getHashedSignature'
         ]);
 
         $helperDataMock->expects($this->once())
             ->method('convertPriceFromFloatToCommaFormat')
             ->with($grandTotal)
             ->willReturn($data['total']);
-
-        $helperDataMock->expects($this->once())
-            ->method('getFormFields');
-
         $helperDataMock->expects($this->once())
             ->method('getHashedSignature')
             ->willReturn($signature);
@@ -393,6 +393,37 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
         $this->_modelOrder->handle($status, $orderId);
     }
+
+    /**
+     * Return invoice from order invoice collection
+     *
+     * @return void
+     */
+    public function testReturnsInvoiceFromOrderInvoiceCollection()
+    {
+        $invoice = new Mage_Sales_Model_Order_Invoice;
+
+        $resModelInvoiceCollectionMock = $this->getResourceModelMock(
+            'sales/order_invoice_collection', ['getLastItem']);
+
+        $resModelInvoiceCollectionMock->expects($this->once())
+            ->method('getLastItem')
+            ->willReturn($invoice);
+
+        $this->replaceByMock('resource_model', 'sales/order_invoice_collection', $resModelInvoiceCollectionMock);
+
+
+        $modelOrderMock = $this->getModelMock('sales/order', ['getInvoiceCollection']);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getInvoiceCollection')
+            ->willReturn($resModelInvoiceCollectionMock);
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+
+        $this->assertEquals($invoice, $this->_modelOrder->getInvoiceFromOrder($modelOrderMock));
+    }
+
 
     /**
      * Get order invoice collection mock with getLastItem method mocked
@@ -597,5 +628,27 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+    }
+
+    /**
+     * Return mocked Oggetto Payment Model for getting invoice from order
+     *
+     * @param EcomDev_PHPUnit_Mock_Proxy $order   Order mock
+     * @param EcomDev_PHPUnit_Mock_Proxy $invoice Invoice mock
+     *
+     * @return EcomDev_PHPUnit_Mock_Proxy
+     */
+    protected function _mockOggettoPaymentOrderModelForGettingInvoiceFromOrder($order, $invoice)
+    {
+        $modelPaymentOrderMock = $this->getModelMock('oggetto_payment/order', ['getInvoiceFromOrder']);
+
+        $modelPaymentOrderMock->expects($this->once())
+            ->method('getInvoiceFromOrder')
+            ->with($order)
+            ->willReturn($invoice);
+
+        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentOrderMock);
+
+        return $modelPaymentOrderMock;
     }
 }

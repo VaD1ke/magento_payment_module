@@ -68,7 +68,6 @@ class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
     {
         /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
-
         return $helper->getRedirectSecureUrl();
     }
 
