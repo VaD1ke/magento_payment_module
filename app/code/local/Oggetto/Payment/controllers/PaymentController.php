@@ -90,8 +90,16 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
 
         $order = $helper->getOrder();
 
+        /** @var Oggetto_Payment_Model_Order $paymentOrder */
+        $paymentOrder = Mage::getModel('oggetto_payment/order');
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
+        $invoice = $paymentOrder->getInvoiceFromOrder($order);
+
         if ($order->getId()) {
+            $invoice->cancel()->save();
+
             $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true)->save();
+
         }
 
         $this->_redirect('checkout/onepage/failure');
