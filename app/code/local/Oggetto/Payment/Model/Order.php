@@ -124,6 +124,6 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         /** @var Mage_Sales_Model_Order_Invoice $invoice */
         $invoice = $invoiceCollection->getLastItem();
 
-       return $invoice;
+        return $invoice;
     }
 }
