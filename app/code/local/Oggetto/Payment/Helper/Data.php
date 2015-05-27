@@ -37,7 +37,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @var Mage_Sales_Model_Order
      */
-    public $order;
+    protected $_order;
 
 
     /**
@@ -48,7 +48,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getFormFieldsFromOrder(Mage_Sales_Model_Order $order)
     {
-        $this->order = $order;
+        $this->_order = $order;
         $fields = [
             'order_id'           => $order->getIncrementId(),
             'total'              => $this->getTotal(),
@@ -142,7 +142,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getOrderItemsString()
     {
         /** @var Mage_Sales_Model_Order $items */
-        $items    = $this->order->getAllVisibleItems();
+        $items    = $this->_getOrder()->getAllVisibleItems();
         $itemsStr = '';
 
         foreach ($items as $item) {
@@ -160,7 +160,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getTotal()
     {
-        $grandTotal = $this->order->getGrandTotal();
+        $grandTotal = $this->_getOrder()->getGrandTotal();
 
         return $this->convertPriceFromFloatToCommaFormat($grandTotal);
     }
@@ -247,5 +247,15 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getPaymentReportUrl()
     {
         return $this->_getUrl('oggetto_payment/payment/response');
+    }
+
+    /**
+     * Get order
+     *
+     * @return Mage_Sales_Model_Order
+     */
+    protected function _getOrder()
+    {
+        return $this->_order;
     }
 }
