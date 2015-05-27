@@ -242,118 +242,46 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
-     * Set order state and set email with can capture invoice and status equals one
+     * Set order state and set email with and status equals one
      *
      * @return void
      */
-    public function testSetsOrderStateAndSetEmailWithCanCaptureInvoiceAndStatusEqualsOne()
+    public function testSetsOrderStateAndSetEmailWithStatusEqualsOne()
     {
-        $status = '1';
-        $orderId = '777';
-
-        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
-            'canCapture', 'capture', 'save'
-        ]);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('canCapture')
-            ->willReturn(true);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('capture')
-            ->willReturnSelf();
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('save');
-
-        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
-
-        $modelOrderMock = $this->_getOrderModelMockWithSettingParamsAndSaving($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
+        $status     = '1';
+        $orderId    = '777';
+        $grandTotal = '123.45';
 
 
-        $modelPaymentOrderMock->handle($status, $orderId);
+        $modelPaymentMock = $this->getModelMock('sales/order_payment', ['registerCaptureNotification']);
+
+        $modelPaymentMock->expects($this->once())
+            ->method('registerCaptureNotification')
+            ->with($grandTotal);
+
+        $this->replaceByMock('model', 'sales/order_payment', $modelPaymentMock);
+
+        $this->_mockOrderModelWithGettingPaymentAndGrandTotalAndSettingParams($orderId, $modelPaymentMock, $grandTotal);
+
+
+        $this->_modelOrder->handle($status, $orderId);
     }
 
     /**
-     * Set order state and set email without can capture invoice and status equals one
+     * Set order state and cancel it  with can capture order and status equals two
      *
      * @return void
      */
-    public function testSetsOrderStateAndSetEmailWithoutCanCaptureInvoiceAndStatusEqualsOne()
-    {
-        $status = '1';
-        $orderId = '777';
-
-        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
-            'canCapture', 'capture', 'save'
-        ]);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('canCapture')
-            ->willReturn(false);
-
-        $modelInvoiceMock->expects($this->never())
-            ->method('capture');
-
-        $modelInvoiceMock->expects($this->never())
-            ->method('save');
-
-        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
-
-
-        $modelOrderMock = $this->_getOrderModelMockWithSettingParamsAndSaving($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
-
-
-        $modelPaymentOrderMock->handle($status, $orderId);
-    }
-
-    /**
-     * Set order state and cancel it and its invoice with can capture invoice and status equals two
-     *
-     * @return void
-     */
-    public function testSetsOrderStateAndCancelItAndItsInvoiceWithCanCaptureInvoiceAndStatusEqualsTwo()
+    public function testSetsOrderStateAndCancelItWithCanCaptureOrderAndStatusEqualsTwo()
     {
         $status = '2';
         $orderId = '777';
 
-        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations();
+        $this->_mockOrderModelWithSettingStateCancelAndSaveIt($orderId);
 
-        $modelOrderMock = $this->_getOrderModelMockWithSettingStateCancelAndSaveIt($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
-
-
-        $modelPaymentOrderMock->handle($status, $orderId);
+        $this->_modelOrder->handle($status, $orderId);
     }
 
-    /**
-     * Set order state and cancel it and its invoice without can capture invoice and status equals two
-     *
-     * @return void
-     */
-    public function testSetsOrderStateAndCancelItWithoutCanCancelInvoiceAndStatusEqualsTwo()
-    {
-        $status = '2';
-        $orderId = '777';
-
-        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations();
-
-        $modelOrderMock = $this->_getOrderModelMockWithSettingStateCancelAndSaveIt($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
-
-
-        $modelPaymentOrderMock->handle($status, $orderId);
-    }
 
     /**
      * Set order state and cancel it and its invoice with can capture invoice and status equals two
@@ -365,161 +293,54 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
         $status = '2';
         $orderId = '777';
 
-        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations();
+        $this->_mockOrderModelWithoutCanCancelStatusAndNotSavingIt($orderId);
 
-        $modelOrderMock = $this->_getOrderModelMockWithoutCanCancelStatusAndNotSavingIt($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
-
-
-        $modelPaymentOrderMock->handle($status, $orderId);
+        $this->_modelOrder->handle($status, $orderId);
     }
 
     /**
-     * Set order state and cancel it and its invoice with can capture invoice and status equals two
+     * Return rounded amount in price format
      *
      * @return void
      */
-    public function testChecksNotCancelItWithoutCanCancelStatusAndWithoutCanCaptureInvoiceAndStatusEqualsTwo()
+    public function testReturnsRoundedAmountInPriceFormat()
     {
-        $status = '2';
-        $orderId = '777';
+        $amountInitial   = 123.456;
+        $amountFormatted = '123.46';
 
-        $modelInvoiceMock = $this->_getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations();
-
-        $modelOrderMock = $this->_getOrderModelMockWithoutCanCancelStatusAndNotSavingIt($orderId);
-
-        $modelPaymentOrderMock = $this->
-                _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $modelInvoiceMock);
-
-        $modelPaymentOrderMock->handle($status, $orderId);
+        $this->assertEquals($amountFormatted, $this->_modelOrder->formatAmount($amountInitial));
     }
 
+
     /**
-     * Return invoice from order invoice collection
+     * Mock and replace sales/order model with getting payment and grand total setting parameters and saving itself
+     *
+     * @param string                     $orderId Order ID
+     * @param EcomDev_PHPUnit_Mock_Proxy $payment Payment mock
+     * @param string                     $total   Order grand total
      *
      * @return void
      */
-    public function testReturnsInvoiceFromOrderInvoiceCollection()
-    {
-        $invoice = new Mage_Sales_Model_Order_Invoice;
-
-        $resModelInvoiceCollectionMock = $this->getResourceModelMock(
-            'sales/order_invoice_collection', ['getLastItem']);
-
-        $resModelInvoiceCollectionMock->expects($this->once())
-            ->method('getLastItem')
-            ->willReturn($invoice);
-
-        $this->replaceByMock('resource_model', 'sales/order_invoice_collection', $resModelInvoiceCollectionMock);
-
-
-        $modelOrderMock = $this->getModelMock('sales/order', ['getInvoiceCollection']);
-
-        $modelOrderMock->expects($this->once())
-            ->method('getInvoiceCollection')
-            ->willReturn($resModelInvoiceCollectionMock);
-
-        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
-
-        $this->assertEquals($invoice, $this->_modelOrder->getInvoiceFromOrder($modelOrderMock));
-    }
-
-
-    /**
-     * Get sales/order_invoice Model Mock with not canCancel and never cancel and save methods expectations
-     *
-     * @return EcomDev_PHPUnit_Mock_Proxy
-     */
-    protected function _getOrderInvoiceModelMockWithNotCanCancelAndNeverCancelAndSaveMethodsExpectations()
-    {
-        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
-            'canCancel', 'cancel', 'save'
-        ]);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('canCancel')
-            ->willReturn(false);
-
-        $modelInvoiceMock->expects($this->never())
-            ->method('cancel');
-
-        $modelInvoiceMock->expects($this->never())
-            ->method('save');
-
-        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
-
-        return $modelInvoiceMock;
-    }
-
-    /**
-     * Get sales/order_invoice Model Mock with canCancel and cancel and save methods expectations
-     *
-     * @return EcomDev_PHPUnit_Mock_Proxy
-     */
-    protected function _getOrderInvoiceModelMockWithCanCancelAndCancelAndSaveMethodsExpectations()
-    {
-        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', [
-            'canCancel', 'cancel', 'save'
-        ]);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('canCancel')
-            ->willReturn(true);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('cancel')
-            ->willReturnSelf();
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('save');
-
-        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
-
-        return $modelInvoiceMock;
-    }
-
-    /**
-     * Return mocked Oggetto Payment Model for getting invoice from order
-     *
-     * @param EcomDev_PHPUnit_Mock_Proxy $order   Order mock
-     * @param EcomDev_PHPUnit_Mock_Proxy $invoice Invoice mock
-     *
-     * @return EcomDev_PHPUnit_Mock_Proxy
-     */
-    protected function _getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($order, $invoice)
-    {
-        $modelPaymentOrderMock = $this->getModelMock('oggetto_payment/order', ['getInvoiceFromOrder']);
-
-        $modelPaymentOrderMock->expects($this->once())
-            ->method('getInvoiceFromOrder')
-            ->with($order)
-            ->willReturn($invoice);
-
-        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentOrderMock);
-
-        return $modelPaymentOrderMock;
-    }
-
-    /**
-     * Mock and replace sales/order model with setting parameters and saving itself
-     *
-     * @param string $orderId Order ID
-     *
-     * @return EcomDev_PHPUnit_Mock_Proxy
-     */
-    protected function _getOrderModelMockWithSettingParamsAndSaving($orderId)
+    protected function _mockOrderModelWithGettingPaymentAndGrandTotalAndSettingParams($orderId, $payment, $total)
     {
         $modelOrderMock = $this->getModelMock('sales/order', [
             'loadByIncrementId', 'setState', 'setStatus',
-            'sendNewOrderEmail', 'setEmailSent', 'save'
+            'sendNewOrderEmail', 'setEmailSent', 'save',
+            'getPayment', 'getGrandTotal'
         ]);
 
         $modelOrderMock->expects($this->once())
             ->method('loadByIncrementId')
             ->with($orderId)
             ->willReturnSelf();
+
+        $modelOrderMock->expects($this->once())
+            ->method('getPayment')
+            ->willReturn($payment);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getGrandTotal')
+            ->willReturn($total);
 
         $modelOrderMock->expects($this->once())
             ->method('setState')
@@ -543,8 +364,6 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
             ->method('save');
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
-
-        return $modelOrderMock;
     }
 
     /**
@@ -552,9 +371,9 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
      *
      * @param string $orderId Order ID
      *
-     * @return EcomDev_PHPUnit_Mock_Proxy
+     * @return void
      */
-    protected function _getOrderModelMockWithSettingStateCancelAndSaveIt($orderId)
+    protected function _mockOrderModelWithSettingStateCancelAndSaveIt($orderId)
     {
         $modelOrderMock = $this->getModelMock('sales/order', [
             'loadByIncrementId', 'canCancel',
@@ -584,7 +403,6 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
-        return $modelOrderMock;
     }
 
     /**
@@ -592,9 +410,9 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
      *
      * @param string $orderId Order ID
      *
-     * @return EcomDev_PHPUnit_Mock_Proxy
+     * @return void
      */
-    protected function _getOrderModelMockWithoutCanCancelStatusAndNotSavingIt($orderId)
+    protected function _mockOrderModelWithoutCanCancelStatusAndNotSavingIt($orderId)
     {
         $modelOrderMock = $this->getModelMock('sales/order', [
             'loadByIncrementId', 'canCancel',
@@ -617,7 +435,5 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
             ->method('save');
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
-
-        return $modelOrderMock;
     }
 }

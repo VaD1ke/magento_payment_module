@@ -43,8 +43,6 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
         $this->renderLayout();
     }
 
-
-
     /**
      * Is triggered when your gateway sends back a response after processing the customer's payment
      *
@@ -92,19 +90,8 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
 
         $order = $helper->getOrder();
 
-        /** @var Oggetto_Payment_Model_Order $oggettoOrder */
-        $oggettoOrder = Mage::getModel('oggetto_payment/order');
-
-        /** @var Mage_Sales_Model_Order_Payment $payment */
-        $payment = $order->getPayment();
-        $payment->registerCaptureNotification($oggettoOrder->formatAmount($order->getGrandTotal()));
-        $invoice = $oggettoOrder->getInvoiceFromOrder($order);
-
         if ($order->getId()) {
-            $invoice->cancel()->save();
-
             $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true)->save();
-
         }
 
         $this->_redirect('checkout/onepage/failure');

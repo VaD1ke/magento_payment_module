@@ -81,11 +81,10 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($orderId);
 
-        /** @var Mage_Sales_Model_Order_Payment $payment */
-        $payment = $order->getPayment();
-        $payment->registerCaptureNotification($this->formatAmount($order->getGrandTotal()));
-        $invoice = $this->getInvoiceFromOrder($order);
         if ($status == 1) {
+            /** @var Mage_Sales_Model_Order_Payment $payment */
+            $payment = $order->getPayment();
+            $payment->registerCaptureNotification($this->formatAmount($order->getGrandTotal()));
 
             $order->setState(
                     Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
@@ -96,10 +95,6 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
 
             $order->save();
         } else {
-            if ($invoice->canCancel()) {
-                $invoice->cancel()->save();
-            }
-
             if ($order->canCancel()) {
                 $order->cancel()->setState(
                     Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.'
@@ -110,31 +105,14 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Get invoice from order
-     *
-     * @param Mage_Sales_Model_Order $order Order
-     * @return Mage_Sales_Model_Order_Invoice
-     */
-    public function getInvoiceFromOrder(Mage_Sales_Model_Order $order)
-    {
-        /** @var Mage_Sales_Model_Resource_Order_Invoice_Collection $invoiceCollection */
-        $invoiceCollection = $order->getInvoiceCollection();
-        /** @var Mage_Sales_Model_Order_Invoice $invoice */
-        $invoice = $invoiceCollection->getLastItem();
-
-        return $invoice;
-    }
-
-    /**
      * Round up and cast specified amount to float or string
      *
-     * @param string|float $amount
-     * @param bool $asFloat
-     * @return string|float
+     * @param string|float $amount amount
+     * @return string
      */
-    public function formatAmount($amount, $asFloat = false)
+    public function formatAmount($amount)
     {
         $amount = Mage::app()->getStore()->roundPrice($amount);
-        return !$asFloat ? (string)$amount : $amount;
+        return (string)$amount;
     }
 }

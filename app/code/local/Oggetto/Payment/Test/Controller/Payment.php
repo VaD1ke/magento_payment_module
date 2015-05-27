@@ -193,18 +193,6 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
         $this->replaceByMock('singleton', 'core/session', $coreSessionMock);
 
 
-        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', ['cancel', 'save']);
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('cancel')
-            ->willReturnSelf();
-
-        $modelInvoiceMock->expects($this->once())
-            ->method('save');
-
-        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
-
-
         $modelOrderMock = $this->getModelMock('sales/order', [
             'getId', 'cancel', 'setState', 'save'
         ]);
@@ -226,16 +214,6 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
             ->method('save');
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
-
-
-        $modelPaymentMock = $this->getModelMock('oggetto_payment/order', ['getInvoiceFromOrder']);
-
-        $modelPaymentMock->expects($this->once())
-            ->method('getInvoiceFromOrder')
-            ->with($modelOrderMock)
-            ->willReturn($modelInvoiceMock);
-
-        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentMock);
 
 
         $helperDataMock = $this->getHelperMock('oggetto_payment', ['getOrder']);
