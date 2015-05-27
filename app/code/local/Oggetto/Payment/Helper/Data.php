@@ -37,17 +37,20 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @var Mage_Sales_Model_Order
      */
-    protected $_order;
+    public $order;
+
 
     /**
-     * Get form fields without signature
-     * 
+     * Get form fields from order without signature
+     *
+     * @param Mage_Sales_Model_Order $order Order
      * @return array
      */
-    public function getFormFields()
+    public function getFormFieldsFromOrder(Mage_Sales_Model_Order $order)
     {
+        $this->order = $order;
         $fields = [
-            'order_id'           => $this->getOrderId(),
+            'order_id'           => $order->getIncrementId(),
             'total'              => $this->getTotal(),
             'items'              => $this->getOrderItemsString(),
             'success_url'        => $this->getSuccessUrl(),
@@ -125,13 +128,10 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getOrder()
     {
-        if (is_null($this->_order)) {
-            /** @var Mage_Sales_Model_Order $salesOrder */
-            $salesOrder = Mage::getModel('sales/order');
-            $order = $salesOrder->loadByIncrementId($this->getOrderId());
-            return $order;
-        }
-        return $this->_order;
+        /** @var Mage_Sales_Model_Order $salesOrder */
+        $salesOrder = Mage::getModel('sales/order');
+        $order = $salesOrder->loadByIncrementId($this->getOrderId());
+        return $order;
     }
 
     /**
@@ -142,7 +142,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getOrderItemsString()
     {
         /** @var Mage_Sales_Model_Order $items */
-        $items    = $this->getOrder()->getAllVisibleItems();
+        $items    = $this->order->getAllVisibleItems();
         $itemsStr = '';
 
         foreach ($items as $item) {
@@ -160,7 +160,7 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getTotal()
     {
-        $grandTotal = $this->getOrder()->getGrandTotal();
+        $grandTotal = $this->order->getGrandTotal();
 
         return $this->convertPriceFromFloatToCommaFormat($grandTotal);
     }

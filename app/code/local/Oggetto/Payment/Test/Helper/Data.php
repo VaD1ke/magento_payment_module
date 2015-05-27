@@ -50,6 +50,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->_helper = Mage::helper('oggetto_payment');
     }
 
+
     /**
      * Returns fields for request form with established parameters and values
      *
@@ -60,8 +61,17 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
      *
      * @dataProvider dataProvider
      */
-    public function testReturnsFieldsForRequestFormWithEstablishedParametersAndValues($fields, $methods)
+    public function testReturnsFieldsForRequestFormFromOrderWithEstablishedParametersAndValues($fields, $methods)
     {
+        $modelOrderMock = $this->getModelMock('sales/order', ['getIncrementId']);
+
+        $modelOrderMock->expects($this->once())
+            ->method('getIncrementId')
+            ->willReturn($fields['order_id']);
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+
+
         $helperDataMock = $this->getHelperMock('oggetto_payment', $methods);
 
         foreach ($methods as $i => $method) {
@@ -73,7 +83,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
 
 
-        $this->assertEquals($fields, $helperDataMock->getFormFields());
+        $this->assertEquals($fields, $helperDataMock->getFormFieldsFromOrder($modelOrderMock));
     }
 
     /**
@@ -239,14 +249,12 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
 
         $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
 
-
         $helperDataMock = $this->getHelperMock('oggetto_payment', [
-            'getOrder', 'convertPriceFromFloatToCommaFormat'
+            'convertPriceFromFloatToCommaFormat'
         ]);
 
-        $helperDataMock->expects($this->once())
-            ->method('getOrder')
-            ->willReturn($modelSalesOrderMock);
+        $helperDataMock->order = $modelSalesOrderMock;
+
 
         $helperDataMock->expects($this->once())
             ->method('convertPriceFromFloatToCommaFormat')
@@ -351,17 +359,13 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
 
         $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
 
+        /** @var Oggetto_Payment_Helper_Data $helperData */
+        $helperData = Mage::helper('oggetto_payment');
 
-        $helperDataMock = $this->getHelperMock('oggetto_payment', ['getOrder']);
-
-        $helperDataMock->expects($this->once())
-            ->method('getOrder')
-            ->willReturn($modelSalesOrderMock);
-
-        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
+        $helperData->order = $modelSalesOrderMock;
 
 
-        $this->assertEquals($itemStr, $helperDataMock->getOrderItemsString());
+        $this->assertEquals($itemStr, $helperData->getOrderItemsString());
     }
 
 

@@ -55,16 +55,24 @@ class Oggetto_Payment_Test_Block_Redirect extends EcomDev_PHPUnit_Test_Case
      *
      * @return void
      */
-    public function testReturnsFieldsForRequestFormWithEstablishedParametersAndValuesFromHelper()
+    public function testReturnsFieldsForRequestFormWithOrderAndEstablishedParametersAndValuesFromHelper()
     {
         $hashedSignature = 'hashedSignature';
         $fields = ['test' => 'test'];
 
+        $order = new Mage_Sales_Model_Order;
 
-        $helperDataMock = $this->getHelperMock('oggetto_payment', ['getFormFields', 'getHashedSignature']);
+        $helperDataMock = $this->getHelperMock('oggetto_payment', [
+            'getFormFieldsFromOrder', 'getHashedSignature', 'getOrder'
+        ]);
 
         $helperDataMock->expects($this->once())
-            ->method('getFormFields')
+            ->method('getOrder')
+            ->willReturn($order);
+
+        $helperDataMock->expects($this->once())
+            ->method('getFormFieldsFromOrder')
+            ->with($order)
             ->willReturn($fields);
 
         $helperDataMock->expects($this->once())

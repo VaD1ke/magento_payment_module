@@ -6,7 +6,6 @@
     error_url: ErrorUrl
     payment_report_url : ReportUrl
   -
-    getOrderId
     getTotal
     getOrderItemsString
     getSuccessUrl
