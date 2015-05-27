@@ -119,17 +119,6 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Set order
-     *
-     * @param Mage_Sales_Model_Order $order order
-     * @return void
-     */
-    public function setOrder(Mage_Sales_Model_Order $order)
-    {
-        $this->_order = $order;
-    }
-
-    /**
      * Get order
      *
      * @return Mage_Sales_Model_Order

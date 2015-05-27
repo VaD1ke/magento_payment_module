@@ -48,7 +48,6 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $order->loadByIncrementId($data['order_id']);
 
         if ($order->getId()) {
-            $helper->setOrder($order);
             $grandTotal = $helper->convertPriceFromFloatToCommaFormat($order->getGrandTotal());
 
             if ($data['total'] == $grandTotal) {
@@ -82,12 +81,11 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($orderId);
 
+        /** @var Mage_Sales_Model_Order_Payment $payment */
+        $payment = $order->getPayment();
+        $payment->registerCaptureNotification($this->formatAmount($order->getGrandTotal()));
         $invoice = $this->getInvoiceFromOrder($order);
-
         if ($status == 1) {
-            if ($invoice->canCapture()) {
-                $invoice->capture()->save();
-            }
 
             $order->setState(
                     Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
@@ -125,5 +123,18 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $invoice = $invoiceCollection->getLastItem();
 
         return $invoice;
+    }
+
+    /**
+     * Round up and cast specified amount to float or string
+     *
+     * @param string|float $amount
+     * @param bool $asFloat
+     * @return string|float
+     */
+    public function formatAmount($amount, $asFloat = false)
+    {
+        $amount = Mage::app()->getStore()->roundPrice($amount);
+        return !$asFloat ? (string)$amount : $amount;
     }
 }
