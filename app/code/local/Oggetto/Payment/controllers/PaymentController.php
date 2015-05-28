@@ -54,7 +54,8 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
             $data = $this->getRequest()->getPost();
 
             try {
-                if ($data['status'] == 1 || $data['status'] == 2) {
+                if ($data['status'] == Oggetto_Payment_Model_Order::PAYMENT_STATUS_SUCCESS
+                    || $data['status'] == Oggetto_Payment_Model_Order::PAYMENT_ERROR_SUCCESS) {
                     /** @var Oggetto_Payment_Model_Order $orderModel */
                     $orderModel = Mage::getModel('oggetto_payment/order');
 
@@ -91,7 +92,7 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
         $order = $helper->getOrder();
 
         if ($order->getId()) {
-            $order->cancel()->setState(Mage_Sales_Model_Order::STATE_CANCELED, true)->save();
+            $order->cancel()->save();
         }
 
         $this->_redirect('checkout/onepage/failure');

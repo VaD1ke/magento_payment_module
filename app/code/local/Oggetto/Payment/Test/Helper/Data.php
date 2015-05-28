@@ -232,7 +232,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
-     * Return Oggetto Payment
+     * Return Oggetto Payment Api total
      *
      * @return void
      */
@@ -250,13 +250,8 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
 
         $helperDataMock = $this->getHelperMock('oggetto_payment', [
-            'convertPriceFromFloatToCommaFormat', '_getOrder'
+            'convertPriceFromFloatToCommaFormat'
         ]);
-
-        $helperDataMock->expects($this->once())
-            ->method('_getOrder')
-            ->willReturn($modelSalesOrderMock);
-
 
         $helperDataMock->expects($this->once())
             ->method('convertPriceFromFloatToCommaFormat')
@@ -266,7 +261,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
 
 
-        $this->assertEquals($testStr, $helperDataMock->getTotal());
+        $this->assertEquals($testStr, $helperDataMock->getTotal($modelSalesOrderMock));
     }
 
     /**
@@ -362,16 +357,7 @@ class Oggetto_Payment_Test_Helper_Data extends EcomDev_PHPUnit_Test_Case
         $this->replaceByMock('model', 'sales/order', $modelSalesOrderMock);
 
 
-        $helperDataMock = $this->getHelperMock('oggetto_payment', ['_getOrder']);
-
-        $helperDataMock->expects($this->once())
-            ->method('_getOrder')
-            ->willReturn($modelSalesOrderMock);
-
-        $this->replaceByMock('helper', 'oggetto_payment', $helperDataMock);
-
-
-        $this->assertEquals($itemStr, $helperDataMock->getOrderItemsString());
+        $this->assertEquals($itemStr, $this->_helper->getOrderItemsString($modelSalesOrderMock));
     }
 
 

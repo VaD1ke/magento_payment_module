@@ -39,6 +39,12 @@ class Oggetto_Payment_Model_Standard extends Mage_Payment_Model_Method_Abstract
     protected $_code = 'oggetto_payment';
 
     /**
+     * Is this payment method a gateway (online auth/charge) ?
+     *
+     * @var bool
+     */
+    protected $_isGateway              = true;
+    /**
      * Is initialize needed
      * @var bool
      */

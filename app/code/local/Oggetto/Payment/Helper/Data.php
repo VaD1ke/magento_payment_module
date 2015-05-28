@@ -33,14 +33,6 @@
 class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
-     * Order
-     *
-     * @var Mage_Sales_Model_Order
-     */
-    protected $_order;
-
-
-    /**
      * Get form fields from order without signature
      *
      * @param Mage_Sales_Model_Order $order Order
@@ -48,11 +40,10 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getFormFieldsFromOrder(Mage_Sales_Model_Order $order)
     {
-        $this->_order = $order;
         $fields = [
             'order_id'           => $order->getIncrementId(),
-            'total'              => $this->getTotal(),
-            'items'              => $this->getOrderItemsString(),
+            'total'              => $this->getTotal($order),
+            'items'              => $this->getOrderItemsString($order),
             'success_url'        => $this->getSuccessUrl(),
             'error_url'          => $this->getErrorUrl(),
             'payment_report_url' => $this->getPaymentReportUrl()
@@ -137,12 +128,13 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Get order items in string with comma separation
      *
+     * @param Mage_Sales_Model_Order $order Order
      * @return string
      */
-    public function getOrderItemsString()
+    public function getOrderItemsString(Mage_Sales_Model_Order $order)
     {
         /** @var Mage_Sales_Model_Order $items */
-        $items    = $this->_getOrder()->getAllVisibleItems();
+        $items    = $order->getAllVisibleItems();
         $itemsStr = '';
 
         foreach ($items as $item) {
@@ -156,11 +148,12 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Get order total price
      *
+     * @param Mage_Sales_Model_Order $order Order
      * @return string
      */
-    public function getTotal()
+    public function getTotal(Mage_Sales_Model_Order $order)
     {
-        $grandTotal = $this->_getOrder()->getGrandTotal();
+        $grandTotal = $order->getGrandTotal();
 
         return $this->convertPriceFromFloatToCommaFormat($grandTotal);
     }
@@ -247,15 +240,5 @@ class Oggetto_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getPaymentReportUrl()
     {
         return $this->_getUrl('oggetto_payment/payment/response');
-    }
-
-    /**
-     * Get order
-     *
-     * @return Mage_Sales_Model_Order
-     */
-    protected function _getOrder()
-    {
-        return $this->_order;
     }
 }

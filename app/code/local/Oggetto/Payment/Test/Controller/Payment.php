@@ -194,7 +194,7 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
 
 
         $modelOrderMock = $this->getModelMock('sales/order', [
-            'getId', 'cancel', 'setState', 'save'
+            'getId', 'cancel', 'save'
         ]);
 
         $modelOrderMock->expects($this->once())
@@ -203,11 +203,6 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
 
         $modelOrderMock->expects($this->once())
             ->method('cancel')
-            ->willReturnSelf();
-
-        $modelOrderMock->expects($this->once())
-            ->method('setState')
-            ->with(Mage_Sales_Model_Order::STATE_CANCELED, true)
             ->willReturnSelf();
 
         $modelOrderMock->expects($this->once())

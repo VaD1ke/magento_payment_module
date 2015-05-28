@@ -33,6 +33,15 @@
 class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
 {
     /**
+     * Success status from gateway
+     */
+    const PAYMENT_STATUS_SUCCESS = 1;
+    /**
+     * Error status from gateway
+     */
+    const PAYMENT_ERROR_SUCCESS  = 2;
+
+    /**
      * Validate order
      *
      * @param array $data data for validating order
@@ -81,7 +90,7 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($orderId);
 
-        if ($status == 1) {
+        if ($status == $this::PAYMENT_STATUS_SUCCESS) {
             /** @var Mage_Sales_Model_Order_Payment $payment */
             $payment = $order->getPayment();
             $payment->registerCaptureNotification($this->formatAmount($order->getGrandTotal()));
