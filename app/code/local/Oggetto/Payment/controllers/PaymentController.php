@@ -64,9 +64,9 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
 
                     /** @var Oggetto_Payment_Model_Order $orderModel */
                     $orderModel = Mage::getModel('oggetto_payment/order');
+
                     unset($data['form_key']);
                     if ($orderModel->validate($order, $data)) {
-                        //var_dump('test');
                         $orderModel->handle($order, $data['status']);
                         $this->getResponse()->setHttpResponseCode(200);
                     } else {

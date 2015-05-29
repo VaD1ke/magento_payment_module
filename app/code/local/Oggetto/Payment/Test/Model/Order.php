@@ -226,16 +226,20 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
      */
     public function testSetsOrderStateAndSetEmailWithStatusEqualsOne()
     {
-        $status     = '1';
+        $status = '1';
+        $total  = '123';
 
-        $invoiceModelMock = $this->_getInvoiceModelMockWithCapturingAndSavingIt();
+        $modelPaymentMock = $this->getModelMock('sales/order_payment', ['registerCaptureNotification']);
 
-        $modelOrderMock = $this->_getOrderModelMockWithSettingProcessingStateStatusAndSavingIt();
+        $modelPaymentMock->expects($this->once())
+            ->method('registerCaptureNotification')
+            ->with($total);
 
-        $modelPaymentOrderMock =
-            $this->_getOggettoPaymentOrderModelMockForGettingInvoiceFromOrder($modelOrderMock, $invoiceModelMock);
+        $this->replaceByMock('model','sales/order_payment' , $modelPaymentMock);
 
-        $modelPaymentOrderMock->handle($modelOrderMock, $status);
+        $modelOrderMock = $this->_getOrderModelMockWithGettingPaymentAndGrandTotal($modelPaymentMock, $total);
+
+        $this->_modelOrder->handle($modelOrderMock, $status);
     }
 
     /**
@@ -290,37 +294,26 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
 
 
     /**
-     * Mock and replace sales/order model with getting payment and grand total setting parameters and saving itself
+     * Mock and replace sales/order model with getting payment and grand total
+     *
+     * @param EcomDev_PHPUnit_Mock_Proxy $payment Payment method
+     * @param integer $grandTotal Total
      *
      * @return EcomDev_PHPUnit_Mock_Proxy
      */
-    protected function _getOrderModelMockWithSettingProcessingStateStatusAndSavingIt()
+    protected function _getOrderModelMockWithGettingPaymentAndGrandTotal($payment, $grandTotal)
     {
         $modelOrderMock = $this->getModelMock('sales/order', [
-            'setState', 'setStatus',
-            'sendNewOrderEmail', 'setEmailSent', 'save'
+            'getPayment', 'getGrandTotal'
         ]);
 
         $modelOrderMock->expects($this->once())
-            ->method('setState')
-            ->with(Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.')
-            ->willReturnSelf();
+            ->method('getPayment')
+            ->willReturn($payment);
 
         $modelOrderMock->expects($this->once())
-            ->method('setStatus')
-            ->with('processing')
-            ->willReturnSelf();
-
-        $modelOrderMock->expects($this->once())
-            ->method('sendNewOrderEmail')
-            ->willReturnSelf();
-
-        $modelOrderMock->expects($this->once())
-            ->method('setEmailSent')
-            ->with(true);
-
-        $modelOrderMock->expects($this->once())
-            ->method('save');
+            ->method('getGrandTotal')
+            ->willReturn($grandTotal);
 
         $this->replaceByMock('model', 'sales/order', $modelOrderMock);
 

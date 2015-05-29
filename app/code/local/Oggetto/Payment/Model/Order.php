@@ -83,20 +83,14 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
      */
     public function handle($order, $status)
     {
-        $invoice = $this->getInvoiceFromOrder($order);
-
         if ($status == $this::PAYMENT_STATUS_SUCCESS) {
-            $invoice->capture()->save();
 
-            $order->setState(
-                    Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
-                )
-                ->setStatus('processing')
-                ->sendNewOrderEmail()
-                ->setEmailSent(true);
+            $payment = $order->getPayment();
+            $payment->registerCaptureNotification($order->getGrandTotal());
 
-            $order->save();
         } else {
+
+            $invoice = $this->getInvoiceFromOrder($order);
             $invoice->cancel()->save();
 
             $order->cancel()->save();
