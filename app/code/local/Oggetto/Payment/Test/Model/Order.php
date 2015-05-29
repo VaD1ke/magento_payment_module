@@ -235,7 +235,7 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
             ->method('registerCaptureNotification')
             ->with($total);
 
-        $this->replaceByMock('model','sales/order_payment' , $modelPaymentMock);
+        $this->replaceByMock('model', 'sales/order_payment', $modelPaymentMock);
 
         $modelOrderMock = $this->_getOrderModelMockWithGettingPaymentAndGrandTotal($modelPaymentMock, $total);
 
@@ -296,8 +296,8 @@ class Oggetto_Payment_Test_Model_Order extends EcomDev_PHPUnit_Test_Case
     /**
      * Mock and replace sales/order model with getting payment and grand total
      *
-     * @param EcomDev_PHPUnit_Mock_Proxy $payment Payment method
-     * @param integer $grandTotal Total
+     * @param EcomDev_PHPUnit_Mock_Proxy $payment    Payment method
+     * @param integer                    $grandTotal Total
      *
      * @return EcomDev_PHPUnit_Mock_Proxy
      */
