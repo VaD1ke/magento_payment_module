@@ -54,10 +54,11 @@ please refer to http://www.magentocommerce.com for more information.
         <payment>
             <oggetto_payment>
                 <model>oggetto_payment/standard</model>
+                <title>Oggetto Payment</title>
                 <active>1</active>
                 <api_secret>ZnVjayB0aGUgZHVjaw==</api_secret>
                 <order_status>pending</order_status>
-                <title>Oggetto Payment</title>
+                <payment_action>Authorization</payment_action>
                 <submit_url>http://edu.oggettoweb.ru/homework/payment/form.php</submit_url>
                 <allowspecific>0</allowspecific>
                 <sort_order>1</sort_order>

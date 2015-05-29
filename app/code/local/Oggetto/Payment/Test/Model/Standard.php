@@ -72,4 +72,57 @@ class Oggetto_Payment_Test_Model_Standard extends EcomDev_PHPUnit_Test_Case
 
         $this->assertEquals($testUrl, $standard->getOrderPlaceRedirectUrl());
     }
+
+    /**
+     * Authorize order, create and register invoice, save transaction
+     *
+     * @return void
+     */
+    public function testAuthorizesOrderCreateAndRegisterInvoiceAndSaveTransaction()
+    {
+        $order = new Mage_Sales_Model_Order;
+
+        $modelPaymentMock = $this->getModelMock('sales/order_payment', ['getOrder']);
+
+        $modelPaymentMock->expects($this->once())
+            ->method('getOrder')
+            ->willReturn($order);
+
+        $this->replaceByMock('model', 'sales/order_payment', $modelPaymentMock);
+
+
+        $modelInvoiceMock = $this->getModelMock('sales/order_invoice', ['register']);
+
+        $modelInvoiceMock->expects($this->once())
+            ->method('register')
+            ->willReturnSelf();
+
+        $this->replaceByMock('model', 'sales/order_invoice', $modelInvoiceMock);
+
+
+        $modelServiceOrderMock = $this->getModelMockBuilder('sales/service_order')
+            ->setMethods(['prepareInvoice'])
+            ->setConstructorArgs([$order])
+            ->getMock();
+
+        $modelServiceOrderMock->expects($this->once())
+            ->method('prepareInvoice')
+            ->willReturn($modelInvoiceMock);
+
+        $this->replaceByMock('model', 'sales/service_order', $modelServiceOrderMock);
+
+
+        $modelStandardPaymentMock = $this->getModelMock(
+            'oggetto_payment/standard',
+            ['_saveTransactionWithAddedInvoice']
+        );
+
+        $modelStandardPaymentMock->expects($this->once())
+            ->method('_saveTransactionWithAddedInvoice')
+            ->with($modelInvoiceMock);
+
+        $this->replaceByMock('model', 'oggetto_payment/standard', $modelStandardPaymentMock);
+
+        $modelStandardPaymentMock->authorize($modelPaymentMock);
+    }
 }

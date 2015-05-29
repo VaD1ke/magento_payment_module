@@ -90,10 +90,10 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($orderId);
 
+        $invoice = $this->getInvoiceFromOrder($order);
+
         if ($status == $this::PAYMENT_STATUS_SUCCESS) {
-            /** @var Mage_Sales_Model_Order_Payment $payment */
-            $payment = $order->getPayment();
-            $payment->registerCaptureNotification($this->formatAmount($order->getGrandTotal()));
+            $invoice->capture()->save();
 
             $order->setState(
                     Mage_Sales_Model_Order::STATE_PROCESSING, true, 'Gateway has authorized the payment.'
@@ -104,24 +104,25 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
 
             $order->save();
         } else {
-            if ($order->canCancel()) {
-                $order->cancel()->setState(
-                    Mage_Sales_Model_Order::STATE_CANCELED, true, 'Gateway has declined the payment.'
-                )->save();
-            }
+            $invoice->cancel()->save();
+
+            $order->cancel()->save();
 
         }
     }
 
     /**
-     * Round up and cast specified amount to float or string
+     * Get invoice from order
      *
-     * @param string|float $amount amount
-     * @return string
+     * @param Mage_Sales_Model_Order $order Order
+     * @return Mage_Sales_Model_Order_Invoice
      */
-    public function formatAmount($amount)
+    public function getInvoiceFromOrder(Mage_Sales_Model_Order $order)
     {
-        $amount = Mage::app()->getStore()->roundPrice($amount);
-        return (string)$amount;
+        /** @var Mage_Sales_Model_Resource_Order_Invoice_Collection $invoiceCollection */
+        $invoiceCollection = $order->getInvoiceCollection();
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
+        $invoice = $invoiceCollection->getLastItem();
+        return $invoice;
     }
 }
