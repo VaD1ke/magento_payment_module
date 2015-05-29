@@ -66,19 +66,20 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
         $this->getRequest()->setMethod('POST');
         $this->getRequest()->setPost($post);
 
-        $modelOrderMock = $this->getModelMock('oggetto_payment/order', [
-            'validate', 'setStatus', 'handle']
-        );
+        $modelOrderMock = $this->_getOrderModelMockWithLoadingByIncrementId($post['order_id']);
 
-        $modelOrderMock->expects($this->once())
+        $modelPaymentOrderMock = $this->getModelMock('oggetto_payment/order', ['validate', 'handle']);
+
+        $modelPaymentOrderMock->expects($this->once())
             ->method('validate')
+            ->with($modelOrderMock, $post)
             ->willReturn(true);
 
-        $modelOrderMock->expects($this->once())
+        $modelPaymentOrderMock->expects($this->once())
             ->method('handle')
-            ->with($post['status'], $post['order_id']);
+            ->with($modelOrderMock, $post['status']);
 
-        $this->replaceByMock('model', 'oggetto_payment/order', $modelOrderMock);
+        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentOrderMock);
 
         $this->dispatch('oggetto_payment/payment/response');
 
@@ -100,14 +101,16 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
         $this->getRequest()->setMethod('POST');
         $this->getRequest()->setPost($post);
 
+        $modelOrderMock = $this->_getOrderModelMockWithLoadingByIncrementId($post['order_id']);
 
-        $modelOrderMock = $this->getModelMock('oggetto_payment/order', ['validate']);
+        $modelPaymentOrderMock = $this->getModelMock('oggetto_payment/order', ['validate']);
 
-        $modelOrderMock->expects($this->once())
+        $modelPaymentOrderMock->expects($this->once())
             ->method('validate')
+            ->with($modelOrderMock, $post)
             ->willReturn(false);
 
-        $this->replaceByMock('model', 'oggetto_payment/order', $modelOrderMock);
+        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentOrderMock);
 
 
         $this->dispatch('oggetto_payment/payment/response');
@@ -152,19 +155,23 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
      */
     public function testResponseActionSetsInternalServerErrorStatusIfWasException()
     {
-        $post = ['status' => 2];
+        $post = [
+            'order_id' => 1,
+            'status'   => 2
+        ];
 
         $this->getRequest()->setMethod('POST');
         $this->getRequest()->setPost($post);
 
+        $this->_getOrderModelMockWithLoadingByIncrementId($post['order_id']);
 
-        $modelOrderMock = $this->getModelMock('oggetto_payment/order', ['validate']);
+        $modelPaymentOrderMock = $this->getModelMock('oggetto_payment/order', ['validate']);
 
-        $modelOrderMock->expects($this->once())
+        $modelPaymentOrderMock->expects($this->once())
             ->method('validate')
             ->willThrowException(new Exception);
 
-        $this->replaceByMock('model', 'oggetto_payment/order', $modelOrderMock);
+        $this->replaceByMock('model', 'oggetto_payment/order', $modelPaymentOrderMock);
 
 
         $this->dispatch('oggetto_payment/payment/response');
@@ -247,6 +254,26 @@ class Oggetto_Payment_Test_Controller_Payment extends EcomDev_PHPUnit_Test_Case_
         $this->assertRedirectTo('checkout/onepage/failure');
     }
 
+
+    /**
+     * Get sales/order model mock with loading by increment ID
+     *
+     * @param integer $orderId Order ID
+     * @return EcomDev_PHPUnit_Mock_Proxy
+     */
+    protected function _getOrderModelMockWithLoadingByIncrementId($orderId)
+    {
+        $modelOrderMock = $this->getModelMock('sales/order', ['loadByIncrementId']);
+
+        $modelOrderMock->expects($this->once())
+            ->method('loadByIncrementId')
+            ->with($orderId)
+            ->willReturnSelf();
+
+        $this->replaceByMock('model', 'sales/order', $modelOrderMock);
+
+        return $modelOrderMock;
+    }
 
     /**
      * Test pack for asserting Request dispatched, not forwarded, Controller module, name and action for oggetto faq

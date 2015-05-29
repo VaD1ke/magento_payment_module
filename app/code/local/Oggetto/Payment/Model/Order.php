@@ -44,17 +44,14 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
     /**
      * Validate order
      *
-     * @param array $data data for validating order
+     * @param Mage_Sales_Model_Order $order validating order
+     * @param array                  $data  data for validating order
      * @return bool
      */
-    public function validate($data)
+    public function validate($order, $data)
     {
         /** @var Oggetto_Payment_Helper_Data $helper */
         $helper = Mage::helper('oggetto_payment');
-
-        /** @var Mage_Sales_Model_Order $order */
-        $order = Mage::getModel('sales/order');
-        $order->loadByIncrementId($data['order_id']);
 
         if ($order->getId()) {
             $grandTotal = $helper->convertPriceFromFloatToCommaFormat($order->getGrandTotal());
@@ -79,17 +76,13 @@ class Oggetto_Payment_Model_Order extends Mage_Core_Model_Abstract
     /**
      * Handle order
      *
-     * @param string $status  payment status
-     * @param string $orderId order ID
+     * @param Mage_Sales_Model_Order $order  Handling order
+     * @param string                 $status Payment status
      *
      * @return void
      */
-    public function handle($status, $orderId)
+    public function handle($order, $status)
     {
-        /** @var Mage_Sales_Model_Order $order */
-        $order = Mage::getModel('sales/order');
-        $order->loadByIncrementId($orderId);
-
         $invoice = $this->getInvoiceFromOrder($order);
 
         if ($status == $this::PAYMENT_STATUS_SUCCESS) {

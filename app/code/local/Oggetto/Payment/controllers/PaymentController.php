@@ -56,11 +56,18 @@ class Oggetto_Payment_PaymentController extends Mage_Core_Controller_Front_Actio
             try {
                 if ($data['status'] == Oggetto_Payment_Model_Order::PAYMENT_STATUS_SUCCESS
                     || $data['status'] == Oggetto_Payment_Model_Order::PAYMENT_ERROR_SUCCESS) {
+
+                    /** @var Mage_Sales_Model_Order $order */
+                    $order = Mage::getModel('sales/order');
+                    $order->loadByIncrementId($data['order_id']);
+
+
                     /** @var Oggetto_Payment_Model_Order $orderModel */
                     $orderModel = Mage::getModel('oggetto_payment/order');
-
-                    if ($orderModel->validate($data)) {
-                        $orderModel->handle($data['status'], $data['order_id']);
+                    unset($data['form_key']);
+                    if ($orderModel->validate($order, $data)) {
+                        //var_dump('test');
+                        $orderModel->handle($order, $data['status']);
                         $this->getResponse()->setHttpResponseCode(200);
                     } else {
                         $this->getResponse()->setHttpResponseCode(400);
